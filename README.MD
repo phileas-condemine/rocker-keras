@@ -7,9 +7,12 @@ docker exec -it keras_demo apt-get update<br>
 docker exec -it keras_demo apt-get install libxml2-dev<br>
 docker exec -it keras_demo apt-get install zlib1g-dev<br>
 docker exec -it keras_demo apt-get install python-pip python-dev<br> build-essential<br>
+
+If you want to use tensorboard in the container rather than on your local machine :
 docker exec -it keras_demo pip install --upgrade pip<br>
 docker exec -it keras_demo pip install --upgrade virtualenv<br>
 docker exec -it keras_demo pip install tensorboard<br>
+... (tensorboard in container still requires so work TBC)<br>
 
 then log to your rstudio container from the browser<br>
 check your docker ip with "docker-machine ip"<br>
