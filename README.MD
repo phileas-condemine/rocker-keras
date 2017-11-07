@@ -1,19 +1,20 @@
-First install Docker Toolbox
-Then run rocker/rstudio from docker hub
-docker run -d -v ~/Documents/training\ hackathon\ 2017/keras_demo:/home/rstudio/keras_demo -p 8787:8787 —name keras_demo rocker/rstudio 
-then
-docker exec -it keras_demo apt-get update
-docker exec -it keras_demo apt-get install libxml2-dev
-docker exec -it keras_demo apt-get install zlib1g-dev
-docker exec -it keras_demo apt-get install python-pip python-dev build-essential 
-docker exec -it keras_demo pip install --upgrade pip 
-docker exec -it keras_demo pip install --upgrade virtualenv 
-docker exec -it keras_demo pip install tensorboard 
+First install Docker Toolbox <br>
+Create a new folder ~/Documents/keras_project<br>
+Then run rocker/rstudio from docker hub<br>
+docker run -d -v ~/Documents/keras_project:/home/rstudio/keras_project -p 8787:8787 —name keras_demo rocker/rstudio<br>
+then<br>
+docker exec -it keras_demo apt-get update<br>
+docker exec -it keras_demo apt-get install libxml2-dev<br>
+docker exec -it keras_demo apt-get install zlib1g-dev<br>
+docker exec -it keras_demo apt-get install python-pip python-dev<br> build-essential<br>
+docker exec -it keras_demo pip install --upgrade pip<br>
+docker exec -it keras_demo pip install --upgrade virtualenv<br>
+docker exec -it keras_demo pip install tensorboard<br>
 
-then log to your rstudio container from the browser
-check your docker ip with "docker-machine ip"
-let's assume your IP is 192.168.99.100
-then in the url bar, type 192.168.99.100:8787 and log in with
-user rstudio
-password rstudio
-then run the first chunk of keras_demo.Rpres to install packages
+then log to your rstudio container from the browser<br>
+check your docker ip with "docker-machine ip"<br>
+let's assume your IP is 192.168.99.100<br>
+then in the url bar, type 192.168.99.100:8787 and log in with<br>
+user rstudio<br>
+password rstudio<br>
+then run the first chunk of keras_demo.Rpres to install packages<br>
