@@ -1,0 +1,570 @@
+keras_demo
+========================================================
+author: AGPC
+date: `r as.Date(Sys.time())`
+autosize: true
+
+About this presentation
+========================================================
+
+This presentation should be read after the ppt slides
+
+You will see that Keras is like a toolbox.
+
+Most tools were described in research papers and implemented in specific situation.
+
+But given high resilience of the API, you can mix all types or layers and find new NN recipes.
+
+Serendipity is indeed a frequent word in deep learning.
+
+Install Keras for RStudio
+========================================================
+
+```{r,eval=F}
+install.packages("keras")
+install_keras()
+```
+
+Error: Prerequisites for installing TensorFlow not available.
+
+Please install the following Python packages before proceeding: pip, virtualenv
+
+=> https://www.saltycrane.com/blog/2010/02/how-install-pip-ubuntu/
+
+
+
+Packages
+========================================================
+```{r echo=F , warnings=F}
+if(!require("devtools")){
+install.packages("devtools")
+}
+devtools::install_github('hadley/ggplot2')
+library(ggplot2)
+packages_list=c("knitr","tidyverse","keras","plotly","webshot")
+for (pkg in packages_list){
+  print(paste0("check: ",pkg))
+if(!require(pkg,character.only = T)){
+  print(paste0("need to install: ",pkg))
+  install.packages(pkg)
+}
+library(pkg,character.only = T)
+}
+
+```
+
+
+Load data
+========================================================
+```{r}
+load("house_price_data_for_keras.RData")
+head(x_train)
+head(y_train)
+head(x_test)
+head(y_test)
+```
+
+Define params
+========================================================
+There is a slide dedicated to batch size selection
+```{r}
+batch_size <- 4 #if batch_size is too low, it's like SGD, loss function is very unstable. if batch_size is too high, the gradient will be almost null after a very few iterations.
+epochs <- 10
+```
+
+Design a neural network
+========================================================
+
+```{r}
+model <- keras_model_sequential()
+
+model %>%
+  layer_dense(units = 100, input_shape = ncol(x_train)) %>% 
+  layer_activation(activation = 'relu') %>% 
+  layer_dense(units=1)%>%
+  layer_activation(activation = 'linear')
+```
+<p color="red">
+Using TensorFlow backend.
+
+2017-11-02 12:32:56.960563: I tensorflow/core/platform/cpu_feature_guard.cc:137] Your CPU supports instructions that this TensorFlow binary was not compiled to use: SSE4.1 SSE4.2 AVX
+</p>
+https://github.com/rstudio/keras/issues?q=is%3Aissue+is%3Aclosed
+
+Choose loss function and optimizer
+========================================================
+```{r}
+model %>% compile(
+  loss = 'mean_squared_error',
+  optimizer = 'adam',#try also sgd 
+  metrics = c('mean_squared_error')
+)
+```
+
+Fit the model and keep track of the optimization process
+========================================================
+```{r}
+history <- model %>% fit(
+  x_train, y_train,
+  batch_size = batch_size,
+  epochs = epochs,
+  verbose = 2,
+  validation_split = 0.3,callbacks=list(callback_tensorboard())
+)
+```
+
+Evaluate the model
+========================================================
+```{r}
+score <- model %>% evaluate(
+  x_test, y_test,
+  batch_size = batch_size,
+  verbose = 1
+)
+
+print(paste0("RMSE on test set ",sqrt(score$mean_squared_error)))
+```
+
+Encapsulate everything in a function
+========================================================
+the function returns Model History Score (a list of 3 objects) MHS
+```{r}
+source("run_model.R")
+MHS <- build_model(x_train,y_train,x_test,y_test)
+```
+
+Add layers
+========================================================
+```{r,eval=F}
+model <- keras_model_sequential()
+model %>%
+  layer_dense(units = 100, input_shape = ncol(x_train)) %>% 
+  layer_activation(activation = 'relu') %>% 
+  layer_dense(units = 80) %>% 
+  layer_activation(activation = 'relu') %>% 
+  layer_dense(units = 60) %>% 
+  layer_activation(activation = 'relu') %>% 
+  layer_dense(units=1)%>%
+  layer_activation(activation = 'linear')
+
+source("compile_evaluate_model.R")
+MHS <- compile_evaluate_model(model,x_train,y_train,x_test,y_test)
+save(list="MHS",file="NN3Layer100relu80relu60relu_batch1.RData")
+```
+```{r}
+load("NN3Layer100relu80relu60relu_batch1.RData")
+plot(MHS[[2]])
+```
+
+Add Dropout
+========================================================
+```{r,eval=F}
+model <- keras_model_sequential()
+model %>%
+  layer_dense(units = 100, input_shape = ncol(x_train)) %>% 
+  layer_activation(activation = 'relu') %>% 
+  layer_dropout(.7)%>%
+  layer_dense(units = 80) %>% 
+  layer_activation(activation = 'relu') %>% 
+  layer_dense(units = 60) %>% 
+  layer_activation(activation = 'relu') %>% 
+  layer_dense(units=1)%>%
+  layer_activation(activation = 'linear')
+
+MHS <- compile_evaluate_model(model,x_train,y_train,x_test,y_test)
+save(list="MHS",file="NN3Layer100relu80relu60relu_batch1_dropout70.RData")
+```
+```{r}
+load("NN3Layer100relu80relu60relu_batch1_dropout70.RData")
+plot(MHS[[2]])
+```
+
+Use alpha Dropout instead
+========================================================
+
+```{r,eval=F}
+model <- keras_model_sequential()
+model %>%
+  layer_dense(units = 100, input_shape = ncol(x_train)) %>% 
+  layer_activation(activation = 'relu') %>% 
+  layer_alpha_dropout(.7)%>%
+  layer_dense(units = 80) %>% 
+  layer_activation(activation = 'relu') %>% 
+  layer_dense(units = 60) %>% 
+  layer_activation(activation = 'relu') %>% 
+  layer_dense(units=1)%>%
+  layer_activation(activation = 'linear')
+
+MHS <- compile_evaluate_model(model,x_train,y_train,x_test,y_test)
+save(list="MHS",file="NN3Layer100relu80relu60relu_batch1_alphadropout70.RData")
+```
+```{r}
+load("NN3Layer100relu80relu60relu_batch1_alphadropout70.RData")
+plot(MHS[[2]])
+```
+
+Use gaussian Dropout instead
+========================================================
+
+```{r,eval=F}
+model <- keras_model_sequential()
+model %>%
+  layer_dense(units = 100, input_shape = ncol(x_train)) %>% 
+  layer_gaussian_dropout(.7)%>%
+  layer_activation(activation = 'relu') %>% 
+  layer_dense(units = 80) %>% 
+  layer_activation(activation = 'relu') %>% 
+  layer_dense(units = 60) %>% 
+  layer_activation(activation = 'relu') %>% 
+  layer_dense(units=1)%>%
+  layer_activation(activation = 'linear')
+
+MHS <- compile_evaluate_model(model,x_train,y_train,x_test,y_test)
+save(list="MHS",file="NN3Layer100relu80relu60relu_batch4_Den1_gaussiandropout70_Act1.RData")
+```
+Den1 Act1 GDO "RMSE on test set 0.187559564216181"
+
+Den1 GDO Act1 "RMSE on test set 0.158125156800799-0.166876005632993"
+
+```{r}
+load("NN3Layer100relu80relu60relu_batch4_Den1_gaussiandropout70_Act1.RData")
+plot(MHS[[2]])
+```
+
+Reduce overfitting - Gaussian Noise
+========================================================
+
+```{r,eval=F}
+model <- keras_model_sequential()
+model %>%
+  layer_dense(units = 100, input_shape = ncol(x_train)) %>% 
+  layer_activation(activation = 'relu') %>% 
+  layer_gaussian_noise(stddev = 1) %>%
+  layer_dense(units = 80) %>% 
+  layer_activation(activation = 'relu') %>% 
+  layer_dense(units = 60) %>% 
+  layer_activation(activation = 'relu') %>% 
+  layer_dense(units=1)%>%
+  layer_activation(activation = 'linear')
+
+MHS <- compile_evaluate_model(model,x_train,y_train,x_test,y_test)
+save(list="MHS",file="NN3Layer100relu80relu60relu_batch4_GN1_betweenDen1Act1.RData")
+```
+[1] "RMSE on test set 0.188398698260064" better !
+
+[1] "RMSE on test set 0.250187371099559" if you put it between Dense 1 and Activation 1.
+```{r}
+load("NN3Layer100relu80relu60relu_batch4_GN1.RData")
+plot(MHS[[2]])
+```
+
+Activity Regularizer
+========================================================
+
+Have a look at : https://keras.io/regularizers/
+```{r,eval=F}
+model <- keras_model_sequential()
+model %>%
+  layer_dense(units = 100, input_shape = ncol(x_train)) %>% 
+  layer_activity_regularization(l1=0,l2=1)%>%
+  layer_activation(activation = 'relu') %>% 
+  layer_dense(units = 80) %>% 
+  layer_activation(activation = 'relu') %>% 
+  layer_dense(units = 60) %>% 
+  layer_activation(activation = 'relu') %>% 
+  layer_dense(units=1)%>%
+  layer_activation(activation = 'linear')
+
+MHS <- compile_evaluate_model(model,x_train,y_train,x_test,y_test)
+save(list="MHS",file="NN3Layer100relu80relu60relu_batch4_Den1_AR0100_Act1.RData")
+```
+Den1 AR7030 Act1 200 iter "RMSE on test set 0.269866256451131"
+
+Den1 AR1000 Act1 500 iter "RMSE on test set 0.373504576873097 - 0.559613751871897"
+
+Den1 AR0100 Act1 500 iter "RMSE on test set 0.234313469190436 - 0.264217724830065"
+
+Act1 AR7030 Den2 "RMSE on test set 0.54332276985586"
+```{r}
+load("NN3Layer100relu80relu60relu_batch4_Den1_AR0100_Act1.RData")
+plot(MHS[[2]])
+```
+
+Batch Normalization
+========================================================
+Have a look at : https://keras.io/regularizers/
+
+There is a ton of paramaters : `help(layer_batch_normalization)`
+
+```{r,eval=F}
+model <- keras_model_sequential()
+model %>%
+  layer_dense(units = 100,input_shape = ncol(x_train)) %>%
+  layer_batch_normalization()%>%
+  layer_activation(activation = 'relu') %>% 
+  layer_dense(units = 80) %>% 
+  layer_activation(activation = 'relu') %>% 
+  layer_dense(units = 60) %>% 
+  layer_activation(activation = 'relu') %>% 
+  layer_dense(units=1)%>%
+  layer_activation(activation = 'linear')
+
+MHS <- compile_evaluate_model(model,x_train,y_train,x_test,y_test)
+save(list="MHS",file="NN3Layer100relu80relu60relu_batch4_BN_betweenDen1Act1.RData")
+
+```
+
+BN_betweenDen1Act1 "RMSE on test set 0.256533278504706"
+
+BN_betweenAct1Den2 "RMSE on test set 1.12236581801725"
+
+Care with the interpretation of the documentation "Normalize the activations of the previous layer at each batch"
+
+
+```{r}
+load("NN3Layer100relu80relu60relu_batch4_BN_betweenDen1Act1.RData")
+plot(MHS[[2]])
+
+```
+
+Mix GDO & GN & BN
+========================================================
+```{r}
+batch_size <- 24 #if batch_size is too low, it's like SGD, loss function is very unstable. if batch_size is too high, the gradient will be almost null after a very few iterations.
+epochs <- 1000
+```
+```{r,eval=F}
+model <- keras_model_sequential()
+model %>%
+  layer_dense(units = 100, input_shape = ncol(x_train)) %>%
+  layer_gaussian_dropout(.7)%>%
+  layer_activation(activation = 'relu') %>% 
+  layer_gaussian_noise(stddev = 1) %>%
+  layer_batch_normalization()%>%
+  layer_dense(units = 80) %>% 
+  layer_activation(activation = 'relu') %>% 
+  layer_dense(units = 60) %>% 
+  layer_activation(activation = 'relu') %>% 
+  layer_dense(units = 80) %>% 
+  layer_activation(activation = 'relu') %>% 
+  layer_dense(units = 100) %>% 
+  layer_activation(activation = 'relu') %>% 
+  layer_dense(units=1)%>%
+  layer_activation(activation = 'linear')
+
+MHS <- compile_evaluate_model(model,x_train,y_train,x_test,y_test)
+save(list="MHS",file="NN5Layer100relu80relu60relu80relu100relu_batch24_GDO70_Act1_GN1_BN.RData")
+```
+Den1 BN Act1 GN1 : "RMSE on test set 0.182853024983419"
+
+Act1 GN1 BN : "RMSE on test set 0.21932565772734"
+
+Den1 GDO70 Act 1 GN1 BN "RMSE on test set 0.184909205825903 - 0.14411899553965"
+
+
+Impact of batch size 
+========================================================
+```{r eval=FALSE}
+NN_list_batch_size <- c("NN5Layer100relu80relu60relu80relu100relu_batch2_GDO70_Act1_GN1_BN.RData"
+                        ,"NN5Layer100relu80relu60relu80relu100relu_batch4_GDO70_Act1_GN1_BN.RData"
+                        ,"NN5Layer100relu80relu60relu80relu100relu_batch6_GDO70_Act1_GN1_BN.RData"
+                        ,"NN5Layer100relu80relu60relu80relu100relu_batch8_GDO70_Act1_GN1_BN.RData"
+                        ,"NN5Layer100relu80relu60relu80relu100relu_batch10_GDO70_Act1_GN1_BN.RData"
+                        ,"NN5Layer100relu80relu60relu80relu100relu_batch12_GDO70_Act1_GN1_BN.RData"
+                        ,"NN5Layer100relu80relu60relu80relu100relu_batch16_GDO70_Act1_GN1_BN.RData"
+                        ,"NN5Layer100relu80relu60relu80relu100relu_batch20_GDO70_Act1_GN1_BN.RData"
+                        ,"NN5Layer100relu80relu60relu80relu100relu_batch24_GDO70_Act1_GN1_BN.RData")
+perf <- data.frame()
+
+for (nm in NN_list_batch_size){
+  print(nm)
+  load(nm)
+  batch_size <- regexpr(pattern = "batch[[:digit:]]*",nm)
+  batch_size <- substr(nm,start = batch_size[1],stop=batch_size[1]+attr(batch_size,"match.length")-1)
+  metrics <- MHS[[2]][2]$metrics
+  sub_perf <- data.frame(iter=1:length(metrics$val_mean_squared_error),perf_train=metrics$mean_squared_error,perf_val=metrics$val_mean_squared_error,lr=metrics$lr,batch=batch_size)
+  perf <- rbind(perf,sub_perf)
+}
+
+g <- ggplot(perf[perf$iter>10,])+geom_line(aes(x=iter,y=perf_train,color=batch))
+g <- ggplotly(g)
+htmlwidgets::saveWidget(as_widget(g), file = "gg_perf_train.html")
+
+g <- ggplot(perf[perf$iter>10,])+geom_line(aes(x=iter,y=perf_val,color=batch))
+g <- ggplotly(g)
+htmlwidgets::saveWidget(as_widget(g), file = "gg_perf_val.html")
+
+g <- ggplot(perf[perf$iter>10,])+geom_line(aes(x=iter,y=lr,color=batch))
+g <- ggplotly(g)
+htmlwidgets::saveWidget(as_widget(g), file = "gg_lr.html")
+```
+
+
+<!-- Impact of batch size - plotly perf on training -->
+<!-- ======================================================== -->
+<!-- <iframe src="gg_perf_train.html" style="position:absolute;height:100%;width:100%"></iframe> -->
+
+<!-- Impact of batch size - plotly perf on validation -->
+<!-- ======================================================== -->
+<!-- <iframe src="gg_perf_val.html" style="position:absolute;height:100%;width:100%"></iframe> -->
+
+<!-- Impact of batch size - plotly evolution of learning rate -->
+<!-- ======================================================== -->
+<!-- <iframe src="gg_lr.html" style="position:absolute;height:100%;width:100%"></iframe> -->
+
+
+
+Callbacks
+========================================================
+Early stop
+
+Reduce learning rate
+
+Tensorboard
+
+```{r,eval=F}
+history <- model %>% fit(
+  x_train, y_train,
+  batch_size = batch_size,
+  epochs = epochs,
+  verbose = 2,
+  validation_split = 0.3,
+  callbacks=list(callback_tensorboard(log_dir = "logs/",write_graph = TRUE,write_images = TRUE,write_grads = TRUE,),
+                 callback_early_stopping(monitor = "val_loss",patience=100,mode = "min"),
+                 callback_reduce_lr_on_plateau(monitor = "val_loss", factor = 0.8,patience=10,verbose=1)))
+```
+
+
+Tensorboard
+========================================================
+docker exec -it keras_demo pip install tensorboard 
+
+Run it inside the docker, then need to forward it to your browser...
+docker exec -it keras_demo tensorboard --logdir=logs 
+
+then http://172.17.0.2:6006 this IP is local (inside the container)
+
+Run it locally from the saved logs
+tensorboard --logdir=~/Documents/training\ hackathon\ 2017/logs
+
+then http://localhost:6006
+
+Word embedding
+========================================================
+Example here : https://keras.rstudio.com/articles/examples/imdb_lstm.html
+data prep : https://github.com/wush978/FeatureHashing/blob/master/vignettes/SentimentAnalysis.Rmd
+```{r eval=F}
+load("text_and_value_data.RData")#this dataset was created in tm section after text cleaning
+
+
+
+sample_train=sample(1:nrow(tm_data),round(0.7*nrow(tm_data)))
+x_train <- tm_data[sample_train,]$Description
+y_train <- log(tm_data[sample_train,]$Value)
+x_test <- tm_data[-sample_train,]$Description
+y_test <- log(tm_data[-sample_train,]$Value)
+
+
+# x_train <- pad_sequences(x_train, maxlen = maxlen)
+# x_test <- pad_sequences(x_test, maxlen = maxlen)
+
+model <- keras_model_sequential()
+model %>%
+  layer_embedding(input_dim = max_features, output_dim = 128) %>% 
+  layer_lstm(units = 64, dropout = 0.2, recurrent_dropout = 0.2) %>% 
+  layer_dense(units = 1, activation = 'linear')
+
+# Try using different optimizers and different optimizer configs
+model %>% compile(
+  loss = 'binary_crossentropy',
+  optimizer = 'adam',
+  metrics = c('accuracy')
+)
+
+cat('Train...\n')
+model %>% fit(
+  x_train, y_train,
+  batch_size = batch_size,
+  epochs = 15,
+  validation_data = list(x_test, y_test)
+)
+
+scores <- model %>% evaluate(
+  x_test, y_test,
+  batch_size = batch_size
+)
+
+cat('Test score:', scores[[1]])
+cat('Test accuracy', scores[[2]])
+
+
+
+```
+
+
+```{r,eval=F}
+library(keras)
+
+max_features <- 2000
+batch_size <- 32
+
+# Cut texts after this number of words (among top max_features most common words)
+maxlen <- 80  
+
+cat('Loading data...\n')
+imdb <- dataset_imdb(num_words = max_features)
+x_train <- imdb$train$x
+y_train <- imdb$train$y
+x_test <- imdb$test$x
+y_test <- imdb$test$y
+
+cat(length(x_train), 'train sequences\n')
+cat(length(x_test), 'test sequences\n')
+
+cat('Pad sequences (samples x time)\n')
+x_train <- pad_sequences(x_train, maxlen = maxlen)
+x_test <- pad_sequences(x_test, maxlen = maxlen)
+cat('x_train shape:', dim(x_train), '\n')
+cat('x_test shape:', dim(x_test), '\n')
+
+cat('Build model...\n')
+model <- keras_model_sequential()
+model %>%
+  layer_embedding(input_dim = max_features, output_dim = 128) %>% 
+  layer_lstm(units = 64, dropout = 0.2, recurrent_dropout = 0.2) %>% 
+  layer_dense(units = 1, activation = 'sigmoid')
+
+# Try using different optimizers and different optimizer configs
+model %>% compile(
+  loss = 'binary_crossentropy',
+  optimizer = 'adam',
+  metrics = c('accuracy')
+)
+
+cat('Train...\n')
+model %>% fit(
+  x_train, y_train,
+  batch_size = batch_size,
+  epochs = 15,
+  validation_data = list(x_test, y_test)
+)
+
+scores <- model %>% evaluate(
+  x_test, y_test,
+  batch_size = batch_size
+)
+
+cat('Test score:', scores[[1]])
+cat('Test accuracy', scores[[2]])
+```
+
+
+Practice
+========================================================
+Fine tune Keras NN layers & parameters
+
+Check the documentation and try some other layers
+
+Try a simple NN on Seattle data
+
+Try word embedding techniques
