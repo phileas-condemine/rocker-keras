@@ -7,8 +7,8 @@ Then in the same terminal, execute commands in the container with these lines <b
 `docker exec -it keras_demo apt-get  install -y libxml2-dev`<br>
 `docker exec -it keras_demo apt-get  install -y zlib1g-dev`<br>
 `docker exec -it keras_demo apt-get install -y python-pip python-dev build-essential`<br>
-`docker exec -it keras_demo pip install -y --upgrade pip`<br>
-`docker exec -it keras_demo pip install -y --upgrade virtualenv`<br>
+`docker exec -it keras_demo pip install --upgrade pip`<br>
+`docker exec -it keras_demo pip install --upgrade virtualenv`<br>
 
 Then log to your rstudio container from the browser<br>
 Check your docker ip with `docker-machine ip`<br>
