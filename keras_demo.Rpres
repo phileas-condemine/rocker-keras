@@ -43,7 +43,7 @@ install.packages("devtools")
 }
 devtools::install_github('hadley/ggplot2')
 library(ggplot2)
-packages_list=c("knitr","tidyverse","keras","plotly","webshot")
+packages_list=c("codetools","knitr","tidyverse","keras","plotly","webshot")
 for (pkg in packages_list){
   print(paste0("check: ",pkg))
 if(!require(pkg,character.only = T)){
