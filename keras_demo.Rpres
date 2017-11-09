@@ -1,5 +1,6 @@
-keras_demo
+Keras_demo
 ========================================================
+
 author: AGPC
 date: `r as.Date(Sys.time())`
 autosize: true
@@ -17,12 +18,13 @@ But given high resilience of the API, you can mix all types or layers and find n
 
 Serendipity is indeed a frequent word in deep learning.
 
+
 Install Keras for RStudio
 ========================================================
 
 ```{r,eval=F}
 install.packages("keras")
-install_keras()
+keras::install_keras()
 ```
 
 Error: Prerequisites for installing TensorFlow not available.
@@ -79,8 +81,8 @@ Design a neural network
 model <- keras_model_sequential()
 
 model %>%
-  layer_dense(units = 100, input_shape = ncol(x_train)) %>% 
-  layer_activation(activation = 'relu') %>% 
+  layer_dense(units = 100, input_shape = ncol(x_train)) %>%
+  layer_activation(activation = 'relu') %>%
   layer_dense(units=1)%>%
   layer_activation(activation = 'linear')
 ```
@@ -96,7 +98,7 @@ Choose loss function and optimizer
 ```{r}
 model %>% compile(
   loss = 'mean_squared_error',
-  optimizer = 'adam',#try also sgd 
+  optimizer = 'adam',#try also sgd
   metrics = c('mean_squared_error')
 )
 ```
@@ -138,12 +140,12 @@ Add layers
 ```{r,eval=F}
 model <- keras_model_sequential()
 model %>%
-  layer_dense(units = 100, input_shape = ncol(x_train)) %>% 
-  layer_activation(activation = 'relu') %>% 
-  layer_dense(units = 80) %>% 
-  layer_activation(activation = 'relu') %>% 
-  layer_dense(units = 60) %>% 
-  layer_activation(activation = 'relu') %>% 
+  layer_dense(units = 100, input_shape = ncol(x_train)) %>%
+  layer_activation(activation = 'relu') %>%
+  layer_dense(units = 80) %>%
+  layer_activation(activation = 'relu') %>%
+  layer_dense(units = 60) %>%
+  layer_activation(activation = 'relu') %>%
   layer_dense(units=1)%>%
   layer_activation(activation = 'linear')
 
@@ -161,13 +163,13 @@ Add Dropout
 ```{r,eval=F}
 model <- keras_model_sequential()
 model %>%
-  layer_dense(units = 100, input_shape = ncol(x_train)) %>% 
-  layer_activation(activation = 'relu') %>% 
+  layer_dense(units = 100, input_shape = ncol(x_train)) %>%
+  layer_activation(activation = 'relu') %>%
   layer_dropout(.7)%>%
-  layer_dense(units = 80) %>% 
-  layer_activation(activation = 'relu') %>% 
-  layer_dense(units = 60) %>% 
-  layer_activation(activation = 'relu') %>% 
+  layer_dense(units = 80) %>%
+  layer_activation(activation = 'relu') %>%
+  layer_dense(units = 60) %>%
+  layer_activation(activation = 'relu') %>%
   layer_dense(units=1)%>%
   layer_activation(activation = 'linear')
 
@@ -185,13 +187,13 @@ Use alpha Dropout instead
 ```{r,eval=F}
 model <- keras_model_sequential()
 model %>%
-  layer_dense(units = 100, input_shape = ncol(x_train)) %>% 
-  layer_activation(activation = 'relu') %>% 
+  layer_dense(units = 100, input_shape = ncol(x_train)) %>%
+  layer_activation(activation = 'relu') %>%
   layer_alpha_dropout(.7)%>%
-  layer_dense(units = 80) %>% 
-  layer_activation(activation = 'relu') %>% 
-  layer_dense(units = 60) %>% 
-  layer_activation(activation = 'relu') %>% 
+  layer_dense(units = 80) %>%
+  layer_activation(activation = 'relu') %>%
+  layer_dense(units = 60) %>%
+  layer_activation(activation = 'relu') %>%
   layer_dense(units=1)%>%
   layer_activation(activation = 'linear')
 
@@ -209,13 +211,13 @@ Use gaussian Dropout instead
 ```{r,eval=F}
 model <- keras_model_sequential()
 model %>%
-  layer_dense(units = 100, input_shape = ncol(x_train)) %>% 
+  layer_dense(units = 100, input_shape = ncol(x_train)) %>%
   layer_gaussian_dropout(.7)%>%
-  layer_activation(activation = 'relu') %>% 
-  layer_dense(units = 80) %>% 
-  layer_activation(activation = 'relu') %>% 
-  layer_dense(units = 60) %>% 
-  layer_activation(activation = 'relu') %>% 
+  layer_activation(activation = 'relu') %>%
+  layer_dense(units = 80) %>%
+  layer_activation(activation = 'relu') %>%
+  layer_dense(units = 60) %>%
+  layer_activation(activation = 'relu') %>%
   layer_dense(units=1)%>%
   layer_activation(activation = 'linear')
 
@@ -237,13 +239,13 @@ Reduce overfitting - Gaussian Noise
 ```{r,eval=F}
 model <- keras_model_sequential()
 model %>%
-  layer_dense(units = 100, input_shape = ncol(x_train)) %>% 
-  layer_activation(activation = 'relu') %>% 
+  layer_dense(units = 100, input_shape = ncol(x_train)) %>%
+  layer_activation(activation = 'relu') %>%
   layer_gaussian_noise(stddev = 1) %>%
-  layer_dense(units = 80) %>% 
-  layer_activation(activation = 'relu') %>% 
-  layer_dense(units = 60) %>% 
-  layer_activation(activation = 'relu') %>% 
+  layer_dense(units = 80) %>%
+  layer_activation(activation = 'relu') %>%
+  layer_dense(units = 60) %>%
+  layer_activation(activation = 'relu') %>%
   layer_dense(units=1)%>%
   layer_activation(activation = 'linear')
 
@@ -265,13 +267,13 @@ Have a look at : https://keras.io/regularizers/
 ```{r,eval=F}
 model <- keras_model_sequential()
 model %>%
-  layer_dense(units = 100, input_shape = ncol(x_train)) %>% 
+  layer_dense(units = 100, input_shape = ncol(x_train)) %>%
   layer_activity_regularization(l1=0,l2=1)%>%
-  layer_activation(activation = 'relu') %>% 
-  layer_dense(units = 80) %>% 
-  layer_activation(activation = 'relu') %>% 
-  layer_dense(units = 60) %>% 
-  layer_activation(activation = 'relu') %>% 
+  layer_activation(activation = 'relu') %>%
+  layer_dense(units = 80) %>%
+  layer_activation(activation = 'relu') %>%
+  layer_dense(units = 60) %>%
+  layer_activation(activation = 'relu') %>%
   layer_dense(units=1)%>%
   layer_activation(activation = 'linear')
 
@@ -301,11 +303,11 @@ model <- keras_model_sequential()
 model %>%
   layer_dense(units = 100,input_shape = ncol(x_train)) %>%
   layer_batch_normalization()%>%
-  layer_activation(activation = 'relu') %>% 
-  layer_dense(units = 80) %>% 
-  layer_activation(activation = 'relu') %>% 
-  layer_dense(units = 60) %>% 
-  layer_activation(activation = 'relu') %>% 
+  layer_activation(activation = 'relu') %>%
+  layer_dense(units = 80) %>%
+  layer_activation(activation = 'relu') %>%
+  layer_dense(units = 60) %>%
+  layer_activation(activation = 'relu') %>%
   layer_dense(units=1)%>%
   layer_activation(activation = 'linear')
 
@@ -338,17 +340,17 @@ model <- keras_model_sequential()
 model %>%
   layer_dense(units = 100, input_shape = ncol(x_train)) %>%
   layer_gaussian_dropout(.7)%>%
-  layer_activation(activation = 'relu') %>% 
+  layer_activation(activation = 'relu') %>%
   layer_gaussian_noise(stddev = 1) %>%
   layer_batch_normalization()%>%
-  layer_dense(units = 80) %>% 
-  layer_activation(activation = 'relu') %>% 
-  layer_dense(units = 60) %>% 
-  layer_activation(activation = 'relu') %>% 
-  layer_dense(units = 80) %>% 
-  layer_activation(activation = 'relu') %>% 
-  layer_dense(units = 100) %>% 
-  layer_activation(activation = 'relu') %>% 
+  layer_dense(units = 80) %>%
+  layer_activation(activation = 'relu') %>%
+  layer_dense(units = 60) %>%
+  layer_activation(activation = 'relu') %>%
+  layer_dense(units = 80) %>%
+  layer_activation(activation = 'relu') %>%
+  layer_dense(units = 100) %>%
+  layer_activation(activation = 'relu') %>%
   layer_dense(units=1)%>%
   layer_activation(activation = 'linear')
 
@@ -362,7 +364,7 @@ Act1 GN1 BN : "RMSE on test set 0.21932565772734"
 Den1 GDO70 Act 1 GN1 BN "RMSE on test set 0.184909205825903 - 0.14411899553965"
 
 
-Impact of batch size 
+Impact of batch size
 ========================================================
 ```{r eval=FALSE}
 NN_list_batch_size <- c("NN5Layer100relu80relu60relu80relu100relu_batch2_GDO70_Act1_GN1_BN.RData"
@@ -400,20 +402,6 @@ htmlwidgets::saveWidget(as_widget(g), file = "gg_lr.html")
 ```
 
 
-<!-- Impact of batch size - plotly perf on training -->
-<!-- ======================================================== -->
-<!-- <iframe src="gg_perf_train.html" style="position:absolute;height:100%;width:100%"></iframe> -->
-
-<!-- Impact of batch size - plotly perf on validation -->
-<!-- ======================================================== -->
-<!-- <iframe src="gg_perf_val.html" style="position:absolute;height:100%;width:100%"></iframe> -->
-
-<!-- Impact of batch size - plotly evolution of learning rate -->
-<!-- ======================================================== -->
-<!-- <iframe src="gg_lr.html" style="position:absolute;height:100%;width:100%"></iframe> -->
-
-
-
 Callbacks
 ========================================================
 Early stop
@@ -437,10 +425,10 @@ history <- model %>% fit(
 
 Tensorboard
 ========================================================
-docker exec -it keras_demo pip install tensorboard 
+docker exec -it keras_demo pip install tensorboard
 
 Run it inside the docker, then need to forward it to your browser...
-docker exec -it keras_demo tensorboard --logdir=logs 
+docker exec -it keras_demo tensorboard --logdir=logs
 
 then http://172.17.0.2:6006 this IP is local (inside the container)
 
@@ -470,15 +458,15 @@ y_test <- log(tm_data[-sample_train,]$Value)
 
 model <- keras_model_sequential()
 model %>%
-  layer_embedding(input_dim = max_features, output_dim = 128) %>% 
-  layer_lstm(units = 64, dropout = 0.2, recurrent_dropout = 0.2) %>% 
+  layer_embedding(input_dim = max_features, output_dim = 128) %>%
+  layer_lstm(units = 64, dropout = 0.2, recurrent_dropout = 0.2) %>%
   layer_dense(units = 1, activation = 'linear')
 
 # Try using different optimizers and different optimizer configs
 model %>% compile(
-  loss = 'binary_crossentropy',
+  loss = 'mean_squared_error',
   optimizer = 'adam',
-  metrics = c('accuracy')
+  metrics = c('mean_squared_error')
 )
 
 cat('Train...\n')
@@ -509,7 +497,7 @@ max_features <- 2000
 batch_size <- 32
 
 # Cut texts after this number of words (among top max_features most common words)
-maxlen <- 80  
+maxlen <- 80
 
 cat('Loading data...\n')
 imdb <- dataset_imdb(num_words = max_features)
@@ -530,8 +518,8 @@ cat('x_test shape:', dim(x_test), '\n')
 cat('Build model...\n')
 model <- keras_model_sequential()
 model %>%
-  layer_embedding(input_dim = max_features, output_dim = 128) %>% 
-  layer_lstm(units = 64, dropout = 0.2, recurrent_dropout = 0.2) %>% 
+  layer_embedding(input_dim = max_features, output_dim = 128) %>%
+  layer_lstm(units = 64, dropout = 0.2, recurrent_dropout = 0.2) %>%
   layer_dense(units = 1, activation = 'sigmoid')
 
 # Try using different optimizers and different optimizer configs
