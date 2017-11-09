@@ -59,7 +59,8 @@ library(pkg,character.only = T)
 Load data
 ========================================================
 ```{r}
-load("house_price_data_for_keras.RData")
+path_house_price_data <- system("find ./ -name house_price_data_for_keras.RData",intern = T)
+load(path_house_price_data)
 head(x_train)
 head(y_train)
 head(x_test)
