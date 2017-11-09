@@ -1,14 +1,14 @@
 First install Docker Toolbox <br>
 Create a new folder ~/Documents/keras_project<br>
 Then run rocker/rstudio from docker hub<br>
-`docker run -d -v ~/Documents/keras_project:/home/rstudio/keras_project -p 8787:8787 —name keras_demo rocker/rstudio`<br>
+`docker run -d -v ~/Documents/keras_project:/home/rstudio/keras_project -p 8787:8787 --name keras_demo rocker/rstudio`<br>
 Then in the same terminal, execute commands in the container with these lines <br>
-`docker exec -it keras_demo apt-get update`<br>
-`docker exec -it keras_demo apt-get install libxml2-dev`<br>
-`docker exec -it keras_demo apt-get install zlib1g-dev`<br>
-`docker exec -it keras_demo apt-get install python-pip python-dev build-essential`<br>
-`docker exec -it keras_demo pip install --upgrade pip`<br>
-`docker exec -it keras_demo pip install --upgrade virtualenv`<br>
+`docker exec -it keras_demo apt-get  update`<br>
+`docker exec -it keras_demo apt-get  install -y libxml2-dev`<br>
+`docker exec -it keras_demo apt-get  install -y zlib1g-dev`<br>
+`docker exec -it keras_demo apt-get install -y python-pip python-dev build-essential`<br>
+`docker exec -it keras_demo pip install -y --upgrade pip`<br>
+`docker exec -it keras_demo pip install -y --upgrade virtualenv`<br>
 
 Then log to your rstudio container from the browser<br>
 Check your docker ip with `docker-machine ip`<br>
