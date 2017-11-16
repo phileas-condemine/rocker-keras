@@ -132,7 +132,8 @@ Encapsulate everything in a function
 ========================================================
 the function returns Model History Score (a list of 3 objects) MHS
 ```{r}
-source("run_model.R")
+path_run_model <- system("find /home/rstudio -name run_model.R",intern=T)
+source(path_run_model)
 MHS <- build_model(x_train,y_train,x_test,y_test)
 ```
 
@@ -150,7 +151,8 @@ model %>%
   layer_dense(units=1)%>%
   layer_activation(activation = 'linear')
 
-source("compile_evaluate_model.R")
+path_compile_evaluate_model <- system("find /home/rstudio -name compile_evaluate_model.R",intern=T)
+source(path_compile_evaluate_model)
 MHS <- compile_evaluate_model(model,x_train,y_train,x_test,y_test)
 save(list="MHS",file="NN3Layer100relu80relu60relu_batch1.RData")
 ```
@@ -438,24 +440,91 @@ tensorboard --logdir=~/Documents/training\ hackathon\ 2017/logs
 
 then http://localhost:6006
 
-Word embedding
+Word embedding - data selection
 ========================================================
-Example here : https://keras.rstudio.com/articles/examples/imdb_lstm.html
-data prep : https://github.com/wush978/FeatureHashing/blob/master/vignettes/SentimentAnalysis.Rmd
-```{r eval=F}
-load("text_and_value_data.RData")#this dataset was created in tm section after text cleaning
+```{r data selection, eval=F}
+
+prune_freq_words=1
+max_features=800
+maxlen = 50
+
+
+path_data <- system(sprintf("find /home/rstudio -name %s","data_prepared_for_keras_lstm.RData"),intern = T)
+load(path_data)#this dataset was created in tm section after text cleaning
+
+data_prepared$Value <- as.numeric(gsub("\\$","",data_prepared$Value))
+data_prepared$Description=as.character(data_prepared$Description)
+data_prepared=data_prepared[!data_prepared$Value==0,]
+
+sentence_split <- strsplit(data_prepared$Description,split = " ")
+nb_words <- max(unlist(lapply(sentence_split,function(x)max(as.numeric(x),na.rm = T))),na.rm=T)
+nb_words
+list_to_remove=setdiff(1:nb_words,seq(prune_freq_words,max_features+prune_freq_words))
+list_to_remove=paste0(" ",list_to_remove," ")
+
+a <- list_to_remove
+b <- rep(" ",length(a))
+names(b) <- a
+
+data_prepared$Description <- stringr::str_replace_all(data_prepared$Description,b)
+head(data_prepared$Description)
+str_len <- str_length(data_prepared$Description)
+data_prepared$Description <- apply(data.frame(desc=data_prepared$Description,
+                                              str_len=str_len),
+                                   1,
+                                   function(x){
+                                     substr(x[1],start = 2,stop=as.numeric(x[2])-1)
+                                   }
+                                   )
+head(data_prepared$Description)
+
+data_prepared=data_prepared[str_length(data_prepared$Description)>0,]
+
+```
+
+Word embedding - data formatting
+========================================================
+
+Running the LSTM is not difficult, but getting the data in the right format can be painful.<br>
+Also this package is recent and not very used yet so it's difficult to find help on stackoverflow BUT many issues were already opened and fixed on github.<br>
+```{r data selection for word embedding}
+
+
+set.seed(1337)
+sample_train=sample(1:nrow(data_prepared),round(0.7*nrow(data_prepared)))
+y_train <- log(data_prepared[sample_train,]$Value)
+y_test <- log(data_prepared[-sample_train,]$Value)
+
+# https://github.com/rstudio/keras/issues/77
+tokenizer <- text_tokenizer(num_words = max_features)
+x_train <- data_prepared[sample_train,]$Description #%>%strsplit(" ")%>%lapply(as.integer)
+fit_text_tokenizer(tokenizer, x_train)
+x_train <- texts_to_sequences(tokenizer, x_train)
+
+x_test <- data_prepared[-sample_train,]$Description #%>%strsplit(" ")%>%lapply(as.integer)
+fit_text_tokenizer(tokenizer, x_test)
+x_test <- texts_to_sequences(tokenizer, x_test)
 
 
 
-sample_train=sample(1:nrow(tm_data),round(0.7*nrow(tm_data)))
-x_train <- tm_data[sample_train,]$Description
-y_train <- log(tm_data[sample_train,]$Value)
-x_test <- tm_data[-sample_train,]$Description
-y_test <- log(tm_data[-sample_train,]$Value)
 
+######## PRUNE WORDS LESS FREQUENT THAT MAX_FEATURES AND MORE FREQUENT THAN PRUNE_FREQ_WORDS
+# imdb <- dataset_imdb(num_words = max_features)
+# head(imdb$train$x)
+# 
+# 
+x_train <- pad_sequences(x_train, maxlen = maxlen)
+x_test <- pad_sequences(x_test, maxlen = maxlen)
+```
 
-# x_train <- pad_sequences(x_train, maxlen = maxlen)
-# x_test <- pad_sequences(x_test, maxlen = maxlen)
+Word embedding - running the model
+========================================================
+Example here : https://keras.rstudio.com/articles/examples/imdb_lstm.html<br>
+data prep : https://github.com/wush978/FeatureHashing/blob/master/vignettes/SentimentAnalysis.Rmd<br>
+
+```{r run model on NN,eval=F}
+
+batch_size = 40
 
 model <- keras_model_sequential()
 model %>%
@@ -463,89 +532,75 @@ model %>%
   layer_lstm(units = 64, dropout = 0.2, recurrent_dropout = 0.2) %>%
   layer_dense(units = 1, activation = 'linear')
 
-# Try using different optimizers and different optimizer configs
-model %>% compile(
-  loss = 'mean_squared_error',
-  optimizer = 'adam',
-  metrics = c('mean_squared_error')
-)
+path_compile_evaluate_model <- system("find /home/rstudio -name compile_evaluate_model.R",intern=T)
+source(path_compile_evaluate_model)
 
-cat('Train...\n')
-model %>% fit(
-  x_train, y_train,
-  batch_size = batch_size,
-  epochs = 15,
-  validation_data = list(x_test, y_test)
-)
+MHS <- compile_evaluate_model(model,x_train,y_train,x_test,y_test)
 
-scores <- model %>% evaluate(
-  x_test, y_test,
-  batch_size = batch_size
-)
+save(list=c("MHS"),file = "HACKATHON_DATA_NN_LSTM_DO20_RDO20.RData")
 
-cat('Test score:', scores[[1]])
-cat('Test accuracy', scores[[2]])
 
 
 
 ```
 
+Word embedding - Add Convolution 1D
+========================================================
+Example here : https://keras.rstudio.com/articles/examples/imdb_lstm.html<br>
+data prep : https://github.com/wush978/FeatureHashing/blob/master/vignettes/SentimentAnalysis.Rmd<br>
 
-```{r,eval=F}
-library(keras)
 
-max_features <- 2000
-batch_size <- 32
+```{r adding convolution in 1 dimension}
+embedding_size = 128
+# Convolution
+kernel_size = 5
+filters = 64
+pool_size = 4
 
-# Cut texts after this number of words (among top max_features most common words)
-maxlen <- 80
+# LSTM
+lstm_output_size = 70
 
-cat('Loading data...\n')
-imdb <- dataset_imdb(num_words = max_features)
-x_train <- imdb$train$x
-y_train <- imdb$train$y
-x_test <- imdb$test$x
-y_test <- imdb$test$y
-
-cat(length(x_train), 'train sequences\n')
-cat(length(x_test), 'test sequences\n')
-
-cat('Pad sequences (samples x time)\n')
-x_train <- pad_sequences(x_train, maxlen = maxlen)
-x_test <- pad_sequences(x_test, maxlen = maxlen)
-cat('x_train shape:', dim(x_train), '\n')
-cat('x_test shape:', dim(x_test), '\n')
-
-cat('Build model...\n')
+# Training
+batch_size = 40
+epochs = 20
 model <- keras_model_sequential()
 model %>%
-  layer_embedding(input_dim = max_features, output_dim = 128) %>%
-  layer_lstm(units = 64, dropout = 0.2, recurrent_dropout = 0.2) %>%
-  layer_dense(units = 1, activation = 'sigmoid')
+  layer_embedding(input_dim =  max_features,output_dim = embedding_size, input_length = maxlen) %>%
+  layer_dropout(0.25) %>%
+  layer_conv_1d(
+    filters, 
+    kernel_size, 
+    padding = "valid",
+    activation = "relu",
+    strides = 1
+  ) %>%
+  layer_max_pooling_1d(pool_size) %>%
+  layer_lstm(units = lstm_output_size, dropout = 0.2, recurrent_dropout = 0.2) %>%
+  layer_dense(1,activation = "linear") 
 
-# Try using different optimizers and different optimizer configs
+MHS <- compile_evaluate_model(model,x_train,y_train,x_test,y_test)
+
+save(list=c("MHS"),file = "HACKATHON_DATA_NN_LSTM_DO25_Conv1D.RData")
+
+
+
 model %>% compile(
-  loss = 'binary_crossentropy',
-  optimizer = 'adam',
-  metrics = c('accuracy')
+  loss = "mean_squared_error",
+  optimizer = "adam",
+  metrics = "mean_squared_error"
 )
 
-cat('Train...\n')
+# Training ----------------------------------------------------------------
+
 model %>% fit(
   x_train, y_train,
   batch_size = batch_size,
-  epochs = 15,
+  epochs = epochs,
   validation_data = list(x_test, y_test)
 )
 
-scores <- model %>% evaluate(
-  x_test, y_test,
-  batch_size = batch_size
-)
-
-cat('Test score:', scores[[1]])
-cat('Test accuracy', scores[[2]])
 ```
+
 
 
 Practice
